@@ -1,9 +1,10 @@
 mod config;
 mod errors;
+mod new_user;
 mod static_files;
 use crate::errors::CustomError;
 use axum::response::Html;
-use axum::{extract::Extension, routing::get, Router};
+use axum::{extract::Extension, routing::{get, post}, Router};
 use dioxus::dioxus_core::VirtualDom;
 use std::net::SocketAddr;
 use web_pages::{
@@ -21,6 +22,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(users))
         .route("/static/*path", get(static_files::static_path))
+        .route("/sign_up", post(new_user::process_form))
         .layer(Extension(config))
         .layer(Extension(pool.clone()));
 
