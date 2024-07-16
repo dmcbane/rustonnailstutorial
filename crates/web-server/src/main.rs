@@ -1,5 +1,6 @@
 mod config;
 mod errors;
+mod static_files;
 use crate::errors::CustomError;
 use axum::response::Html;
 use axum::{extract::Extension, routing::get, Router};
@@ -19,6 +20,7 @@ async fn main() {
     // build our application with a route
     let app = Router::new()
         .route("/", get(users))
+        .route("/static/*path", get(static_files::static_path))
         .layer(Extension(config))
         .layer(Extension(pool.clone()));
 
