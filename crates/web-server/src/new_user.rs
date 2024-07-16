@@ -1,15 +1,17 @@
 use serde::Deserialize;
+use validator::Validate;
 
 use crate::errors::CustomError;
 use axum::{
     extract::Extension,
-    response::Redirect,
+    http::StatusCode,
+    response::{IntoResponse, Redirect, Response},
     Form,
 };
 
-// 👇 create new SignUp struct
-#[derive(Deserialize )]
+#[derive(Deserialize, Validate)]
 pub struct SignUp {
+    #[validate(email)] // 👈 add validate annotation
     email: String,
 }
 
@@ -17,7 +19,13 @@ pub struct SignUp {
 pub async fn process_form(
     Extension(pool): Extension<db::Pool>,
     Form(form): Form<SignUp>,
-) -> Result<Redirect, CustomError> {
+) -> Result<Response, CustomError> {
+    
+    // 👇 add our error handling
+    if form.validate().is_err() {
+        return Ok((StatusCode::BAD_REQUEST, "Bad request").into_response());
+    }
+
     let client = pool.get().await?;
 
     let email = form.email;
@@ -26,5 +34,5 @@ pub async fn process_form(
         .await?;
 
     // 303 redirect to users list
-    Ok(Redirect::to("/"))
+    Ok(Redirect::to("/").into_response())
 }
